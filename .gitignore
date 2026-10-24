@@ -1,0 +1,10 @@
+# secrets and runtime state never belong in a public repo
+.env
+.env.*
+*.tmp
+state/
+bot-*.json
+*-ham.json
+*-ham.onceki.json
+__pycache__/
+*.pyc
