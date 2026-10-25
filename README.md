@@ -1,5 +1,7 @@
 # hermes-team
 
+Türkçe: [README.tr.md](README.tr.md)
+
 A team of personal AI agents that live in a Telegram supergroup, built on
 [Hermes Agent](https://github.com/NousResearch/hermes-agent). One agent per role, one topic
 per agent, one scheduled run that produces something worth reading.
