@@ -87,4 +87,4 @@ sonra devreye al. Tüm sıra [docs/setup.md](docs/setup.md) içinde.
 
 ## Lisans
 
-MIT — bkz. [LICENSE](LICENSE).
+GPL-3.0-only — bkz. [LICENSE](LICENSE). Telif (C) 2026 Ömer Taha Öztop.
