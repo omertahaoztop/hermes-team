@@ -98,3 +98,26 @@ Two details that matter in practice, both learned the hard way:
 - **Never use `_underscore italics_`.** The adapter converts `**bold**` and
   `*italic*`; underscores leak through as literal characters. The closing
   error/note line uses `*single asterisks*`.
+
+## Monitor-gated runs
+
+A schedule alone forces the model to wake up and decide there is nothing to say.
+That costs tokens and invites invented content. The alternative is a monitor
+script: the scheduler runs a cheap command every tick, and the agent runs **only
+when the output changed**.
+
+```bash
+hermes -p bridge cron create "0 * * * *" \
+  "Report only the lines in the trigger output. Do not re-read the source." \
+  --name bridge-live --monitor-script watch.sh --deliver "matrix:!roomid"
+```
+
+Rules that keep this honest:
+
+- The trigger output **is** the data. Forbid re-reading: a second read usually
+  races the cursor and produces "nothing new" for a run that did fire.
+- Silence is the correct output when the trigger is empty; forbid filler such as
+  "no new records" — that is what a chatty bot looks like.
+- Cap the work: a fetch limit plus a match limit. Anything past the cap is
+  dropped this tick (the cursor still advances), so the caps must be sized for
+  your worst hour, not your average one.

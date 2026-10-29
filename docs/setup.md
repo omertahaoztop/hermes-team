@@ -138,3 +138,48 @@ python3 ~/.hermes/scripts/state.py read calendar | jq .last_run
 | `cron run` does nothing | job is paused — `cron resume` first |
 | `scripts/foo.sh` not found in `--script` | the path resolves inside the profile's `scripts/`; pass the bare filename |
 | Scheduled runs all stop at once | multiplexed gateway: the scheduler lives in the primary profile's process |
+
+## Matrix channel (reference deployment)
+
+Each agent is its own Matrix user with its own room; one space groups them.
+
+```bash
+# 1. user (Synapse host, registration secret from homeserver.yaml)
+register_new_matrix_user -c /etc/matrix-synapse/homeserver.yaml \
+  -u bridge -p "$(openssl rand -hex 24)" --no-admin http://localhost:8008
+
+# 2. token for that user
+curl -s -X POST http://localhost:8008/_matrix/client/v3/login \
+  -d '{"type":"m.login.password","identifier":{"type":"m.id.user","user":"bridge"},
+       "password":"<password>"}'
+
+# 3. room + invite yourself
+curl -s -X POST http://localhost:8008/_matrix/client/v3/createRoom \
+  -H "Authorization: Bearer <token>" \
+  -d '{"name":"Bridge","preset":"private_chat","invite":["@you:example.org"]}'
+```
+
+Profile `.env` — the room id appears twice, once as the allowed room and once as the
+default:
+
+```bash
+MATRIX_HOMESERVER=https://matrix.example.org
+MATRIX_USER_ID=@bridge:example.org
+MATRIX_ACCESS_TOKEN=<token>
+MATRIX_ALLOWED_USERS=@you:example.org
+MATRIX_ALLOWED_ROOMS=!roomid
+MATRIX_HOME_ROOM=!roomid
+```
+
+Then `hermes -p bridge cron create … --deliver "matrix:!roomid"` and write
+`m.space.child` in your space so the room shows up under it.
+
+### Pitfalls that cost real time
+
+| Symptom | Cause |
+|---|---|
+| Room messages arrive, agent never answers | gateway process started before `.env` gained the Matrix keys — restart it; the log line to look for is `matrix connected (profile: X)` |
+| Display name still shows the profile name | set `m.room.member` state for the agent *in that room*, not only the profile display name |
+| Avatar upload returns 404 | the public vhost may not proxy `/_matrix/media/*`; upload against the internal listener (`http://localhost:8008`) |
+| Room is not listed under the space | you own the space power level and the agent does not: adding `m.space.child` requires power, so either add the room yourself or grant the agent moderator |
+| Old messages replayed on first run | no cursor yet — the first run reads `num_before` backlog; seed the cursor before enabling the job |

@@ -2,16 +2,20 @@
 
 Türkçe: [README.tr.md](README.tr.md)
 
-A team of personal AI agents that live in a Telegram supergroup, built on
-[Hermes Agent](https://github.com/NousResearch/hermes-agent). One agent per role, one topic
+A team of personal AI agents that live in a chat space, built on
+[Hermes Agent](https://github.com/NousResearch/hermes-agent). One agent per role, one room
 per agent, one scheduled run that produces something worth reading.
+
+The channel is swappable: the reference deployment runs on Matrix, where every agent is its
+own user (`@role:example.org`) and a single **space** groups the rooms. Telegram was the first
+channel; the team never depended on it.
 
 The core idea: an agent is not a chatbot you visit. It is a **profile** with its
 own identity, instructions, memory, state and schedule — and it reports to you
-on a rhythm. Nine roles, nine topics, nothing shared but a memory bank.
+on a rhythm. Nine roles, nine rooms, nothing shared but a memory bank.
 
 ```
-                    Telegram supergroup
+                    Matrix space "Team"
   ┌──────────────────────────────────────────────────────┐
   │  General        ← you talk to any agent here         │
   │  ─────────────────────────────────────────────────   │
@@ -30,7 +34,7 @@ on a rhythm. Nine roles, nine topics, nothing shared but a memory bank.
 | Decision | Reason |
 |---|---|
 | Agent = profile, not new primitive | Isolation for free: separate token, skill, state, memory, schedule |
-| One topic per agent | Five morning reports do not bury a conversation; open the topic or ignore it |
+| One room per agent | Five morning reports do not bury a conversation; open the room or ignore it |
 | Read-only by default | An agent that can write to your tracker is an agent you must audit. Suggest, never apply |
 | Every run produces a message | A silent agent is indistinguishable from a broken one. See [why `[SILENT]` was removed](docs/output-contract.md) |
 | Evidence or nothing | Every line carries a job id, a link, or `file:field`. No unsourced sentences |

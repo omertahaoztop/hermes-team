@@ -108,3 +108,21 @@ Take `templates/SKILL.template.md` and answer:
 3. **State** — what must not be repeated across runs.
 4. **Output** — which items, in which order, with what evidence per item.
 5. **Failure** — what a one-line error looks like when the source is down.
+
+---
+
+## 10. Bridge — read-only source adapter
+
+A source your team's platform does not speak natively (an on-call channel, a
+monitoring feed, a vendor chat) can still be an input: one agent reads it over
+REST and reports into its own room.
+
+**Reads:** one API, with the *user's* own credentials, so nothing is posted back
+under a bot identity that does not exist.
+**Emits:** alerts that matter (open incident, repeat pattern, unanswered direct
+message) plus a daily digest, each line carrying the host, the alert text and the
+time.
+**Never:** writes to the source. Replying there would show up as the human
+speaking, which is exactly the impersonation this role exists to avoid.
+**Fails when:** it re-reads the whole feed on every run instead of the delta since
+its last cursor, or when it reports the same incident every hour.
