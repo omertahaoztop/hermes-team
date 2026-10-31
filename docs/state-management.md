@@ -43,9 +43,10 @@ python3 ~/.hermes/scripts/state.py write <role> < new.json
 python3 ~/.hermes/scripts/state.py init <role>
 ```
 
-`bin/state.py` is ~80 lines: atomic write via a temp file in the same directory,
-`os.replace`, schema defaults, and a refuse-to-clobber-on-corrupt-JSON path that
-backups instead of resetting. No model-authored script, no `.tmp` bookkeeping,
+`bin/state.py` is ~110 lines: atomic write via a temp file in the same directory,
+`os.replace`, schema defaults, and a corrupt-JSON path that never resets: `read`
+refuses and exits, and the next `write`, once the new file is fully written, moves the unparseable file aside to
+`bot-<role>.json.corrupt-<UTC timestamp>`. No model-authored script, no `.tmp` bookkeeping,
 no name collisions.
 
 The contract now says, in the block every agent carries:
@@ -100,7 +101,7 @@ only enforces the common fields:
 Rules the helper cannot enforce, so keep them in the `SKILL.md`:
 
 - Prune entries older than ~90 days, or the file grows without bound.
-- On corrupt JSON, back up and report in the `error` field — never reset silently.
+- On corrupt JSON, report it in the `error` field (`state.py write` already moves the old file aside) — never reset silently.
 - Never write secrets, mail bodies, or address books into state.
 
 ## Scratch directory

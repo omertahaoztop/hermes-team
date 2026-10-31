@@ -15,10 +15,13 @@ bot cannot see group messages it was not explicitly mentioned in.
 <token_news>
 ```
 
-Verify every token is live before going further:
+Verify every token is live before going further. `IFS= read -rs` keeps the token out
+of shell history, and `-K <(…)` keeps it out of `curl`'s argv (visible in `ps`). The
+prompt is a separate `printf` so the same lines work in bash and zsh:
 
 ```bash
-TOKEN=…; curl -s "https://api.telegram.org/bot$TOKEN/getMe" | jq .ok
+printf 'token: '; IFS= read -rs TOKEN; echo
+curl -s -K <(printf 'url = "https://api.telegram.org/bot%s/getMe"\n' "$TOKEN") | jq .ok
 ```
 
 ## 2. Create the profiles
@@ -34,7 +37,9 @@ key` until you add a model key. Copy the token into **that profile's** `.env`
 only:
 
 ```bash
-echo "TELEGRAM_BOT_TOKEN=<token_calendar>" >> ~/.hermes/profiles/calendar/.env
+printf 'token: '; IFS= read -rs TOKEN; echo
+printf 'TELEGRAM_BOT_TOKEN=%s\n' "$TOKEN" >> ~/.hermes/profiles/calendar/.env
+unset TOKEN
 chmod 600 ~/.hermes/profiles/*/.env
 ```
 
@@ -144,19 +149,22 @@ python3 ~/.hermes/scripts/state.py read calendar | jq .last_run
 Each agent is its own Matrix user with its own room; one space groups them.
 
 ```bash
-# 1. user (Synapse host, registration secret from homeserver.yaml)
+# 1. user (Synapse host); without -p it prompts for the password
 register_new_matrix_user -c /etc/matrix-synapse/homeserver.yaml \
-  -u bridge -p "$(openssl rand -hex 24)" --no-admin http://localhost:8008
+  -u bridge --no-admin http://localhost:8008
 
-# 2. token for that user
-curl -s -X POST http://localhost:8008/_matrix/client/v3/login \
-  -d '{"type":"m.login.password","identifier":{"type":"m.id.user","user":"bridge"},
-       "password":"<password>"}'
+# 2. token for that user; jq reads the password from stdin, so it never hits argv
+printf 'password: '; IFS= read -rs PW; echo
+printf '%s' "$PW" | jq -Rs '{type:"m.login.password",identifier:{type:"m.id.user",user:"bridge"},password:.}' |
+  curl -s -X POST http://localhost:8008/_matrix/client/v3/login -d @- | jq -r .access_token
+unset PW
 
-# 3. room + invite yourself
+# 3. room + invite yourself; the token goes through a curl config, not argv
+printf 'access token: '; IFS= read -rs MTOKEN; echo
 curl -s -X POST http://localhost:8008/_matrix/client/v3/createRoom \
-  -H "Authorization: Bearer <token>" \
+  -K <(printf 'header = "Authorization: Bearer %s"\n' "$MTOKEN") \
   -d '{"name":"Bridge","preset":"private_chat","invite":["@you:example.org"]}'
+unset MTOKEN
 ```
 
 Profile `.env` — the room id appears twice, once as the allowed room and once as the
