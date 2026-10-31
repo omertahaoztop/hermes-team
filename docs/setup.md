@@ -6,7 +6,13 @@ Assumes Hermes Agent is installed and `hermes` runs as the service user. Replace
 ## 1. Create the bots
 
 One bot per role in BotFather. Turn **privacy mode off** in each, otherwise the
-bot cannot see group messages it was not explicitly mentioned in.
+bot cannot see group messages it was not explicitly mentioned in. With privacy
+off every bot reads every message in the group, so step 2 pins each profile to
+your own Telegram user id with `TELEGRAM_ALLOWED_USERS` (applies to DMs, groups
+and forums). Anyone else in the group, including the other bots, is then
+ignored instead of being able to give an agent instructions. On the Matrix channel
+(the reference deployment, below) there is no privacy mode: each agent has its own
+room and `MATRIX_ALLOWED_USERS` does the same pinning.
 
 ```bash
 # per role, one line each: no labels needed
@@ -40,6 +46,7 @@ only:
 printf 'token: '; IFS= read -rs TOKEN; echo
 printf 'TELEGRAM_BOT_TOKEN=%s\n' "$TOKEN" >> ~/.hermes/profiles/calendar/.env
 unset TOKEN
+printf 'TELEGRAM_ALLOWED_USERS=%s\n' "<your numeric user id>" >> ~/.hermes/profiles/calendar/.env
 chmod 600 ~/.hermes/profiles/*/.env
 ```
 
