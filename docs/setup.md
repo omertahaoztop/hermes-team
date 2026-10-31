@@ -10,7 +10,9 @@ bot cannot see group messages it was not explicitly mentioned in. With privacy
 off every bot reads every message in the group, so step 2 pins each profile to
 your own Telegram user id with `TELEGRAM_ALLOWED_USERS` (applies to DMs, groups
 and forums). Anyone else in the group, including the other bots, is then
-ignored instead of being able to give an agent instructions.
+ignored instead of being able to give an agent instructions. On the Matrix channel
+(the reference deployment, below) there is no privacy mode: each agent has its own
+room and `MATRIX_ALLOWED_USERS` does the same pinning.
 
 ```bash
 # per role, one line each: no labels needed

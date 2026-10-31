@@ -27,7 +27,10 @@ def line(items: list, since: str, days: int) -> str:
 
 
 def main() -> None:
-    days = int(sys.argv[1]) if len(sys.argv) > 1 else 7
+    try:
+        days = int(sys.argv[1]) if len(sys.argv) > 1 else 7
+    except ValueError:
+        sys.exit("usage: scorecard.py [days]")
     since = (date.today() - timedelta(days=days)).isoformat()
     files = sorted(HOME.glob("profiles/*/state/bot-*.json")) + sorted(HOME.glob("state/bot-*.json"))
     shown = 0
