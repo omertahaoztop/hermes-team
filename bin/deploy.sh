@@ -11,8 +11,9 @@ OWNER="${HERMES_OWNER:-$(id -un)}"
 
 roles=("$@")
 if [ ${#roles[@]} -eq 0 ]; then
-  mapfile -t roles < <(find "$H/profiles" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+  while IFS= read -r d; do roles+=("${d##*/}"); done < <(find "$H/profiles" -mindepth 1 -maxdepth 1 -type d | sort)
 fi
+[ ${#roles[@]} -gt 0 ] || { echo "no profiles in $H/profiles, nothing to deploy"; exit 0; }
 
 install -d -m 755 "$H/scripts"
 install -m 755 "$REPO/bin/state.py" "$H/scripts/state.py"
@@ -20,6 +21,7 @@ install -m 755 "$REPO/bin/state.py" "$H/scripts/state.py"
 common="$(sed -n '/^```text$/,/^```$/p' "$REPO/templates/common-rules.md" | sed '1d;$d')"
 
 for role in "${roles[@]}"; do
+  case "$role" in ''|*[!A-Za-z0-9_-]*) echo "skip $role: invalid name" >&2; continue ;; esac
   dst="$H/profiles/$role"
   [ -d "$dst" ] || { echo "skip $role: no profile"; continue; }
 
@@ -35,7 +37,8 @@ for role in "${roles[@]}"; do
     "$(wc -l < "$dst/SOUL.md")" \
     "$(grep -c 'COMMON RULES' "$dst/SOUL.md")" \
     "$(wc -l < "$dst/skills/$role/SKILL.md")"
+  ok=$role
 done
 
 echo "--- state helper ---"
-"$H/scripts/state.py" read "$(basename "${roles[0]}")" >/dev/null 2>&1 && echo "state.py OK"
+"$H/scripts/state.py" read "${ok:?no valid role deployed}" >/dev/null 2>&1 && echo "state.py OK"

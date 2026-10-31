@@ -14,8 +14,10 @@ Primary profile: ~/.hermes/state/bot-<role>.json
 """
 import json
 import os
+import re
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HOME = Path(os.environ.get("HERMES_HOME", Path.home() / ".hermes"))
@@ -39,8 +41,19 @@ def read(role: str) -> dict:
         return template(role)
     try:
         return json.loads(p.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
-        sys.exit(f"ERROR: cannot read {p}: {e}")
+    except (OSError, ValueError) as e:
+        sys.exit(f"ERROR: cannot read {p}: {e} (a write moves unparseable JSON to {p.name}.corrupt-<ts>)")
+
+
+def backup_if_corrupt(p: Path) -> None:
+    try:
+        json.loads(p.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return
+    except ValueError:
+        bak = p.with_name(f"{p.name}.corrupt-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}")
+        os.replace(p, bak)
+        print(f"backed up corrupt state: {bak}", file=sys.stderr)
 
 
 def write(role: str, data: dict) -> None:
@@ -51,6 +64,7 @@ def write(role: str, data: dict) -> None:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
             f.write("\n")
+        backup_if_corrupt(p)
         os.replace(tmp, p)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
@@ -61,6 +75,8 @@ def main() -> None:
     if len(sys.argv) < 3:
         sys.exit(__doc__)
     cmd, role = sys.argv[1], sys.argv[2]
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", role):
+        sys.exit(f"ERROR: invalid role name: {role!r}")
 
     if cmd == "read":
         print(json.dumps(read(role), ensure_ascii=False, indent=2))
