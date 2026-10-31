@@ -39,6 +39,7 @@ on a rhythm. Nine roles, nine rooms, nothing shared but a memory bank.
 | Every run produces a message | A silent agent is indistinguishable from a broken one. See [why `[SILENT]` was removed](docs/output-contract.md) |
 | Evidence or nothing | Every line carries a job id, a link, or `file:field`. No unsourced sentences |
 | Deterministic collectors | The model interprets data; it never fetches it. Fetching is a script's job |
+| Suggestions are scored | Every suggestion is logged with its outcome; a weekly scorecard shows which agent's advice lands. See [the suggestion ledger](docs/state-management.md#suggestion-ledger) |
 
 ## The nine roles
 
@@ -80,6 +81,7 @@ itself. Full sequence in [docs/setup.md](docs/setup.md).
 | `docs/setup.md` | BotFather → profile → soul → skill → routine |
 | `templates/` | `SOUL`, `SKILL`, common rules, routine table |
 | `bin/state.py` | Atomic read/write for per-agent state files |
+| `bin/scorecard.py` | Read-only weekly count of each agent's suggestions and how many landed |
 | `bin/deploy.sh` | Push `templates/` into `~/.hermes/profiles/` |
 
 ## Hard rules this repo encodes

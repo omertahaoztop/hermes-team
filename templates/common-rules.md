@@ -48,4 +48,10 @@ COMMON RULES (apply to every run):
      convert them and they leak as literal characters.
 9. Write in the team's language. Be explicit about uncertainty: "unverified",
    "not readable from the source".
+10. Every suggestion you make (a task to pick up, an evening option, a repo to
+   read) goes into your state as `suggestions[]`: `{date, ref, status}`, status
+   `proposed`. When you learn what happened, advance it: `accepted` or
+   `declined` (the owner's answer), then `worked` or `failed` (the effect). Never
+   delete a row. Before you suggest, read your own `suggestions[]`: do not
+   re-offer what was declined, and lean toward what worked.
 ```

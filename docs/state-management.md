@@ -104,6 +104,34 @@ Rules the helper cannot enforce, so keep them in the `SKILL.md`:
 - On corrupt JSON, report it in the `error` field (`state.py write` already moves the old file aside) — never reset silently.
 - Never write secrets, mail bodies, or address books into state.
 
+## Suggestion ledger
+
+Most roles suggest something every run, and without a record nobody knows
+whether any of it was right. Common rule 10 gives every agent the same list in
+its state:
+
+```json
+"suggestions": [
+  {"date": "2026-11-01", "ref": "#44011", "status": "proposed"},
+  {"date": "2026-10-28", "ref": "walk-20min", "status": "worked"}
+]
+```
+
+`status` only moves forward: `proposed` → `accepted` / `declined` → `worked` /
+`failed`. A suggestion closes when its effect is known, not when it is sent.
+
+`bin/scorecard.py [days]` reads every profile's `suggestions[]` and prints, per
+role, how many were made recently and how many landed (`accepted` or `worked`).
+It is read-only. Run it from the primary agent's weekly routine and put the
+numbers in the report: the role with the lowest hit rate is the one to
+recalibrate. A role whose rows are all still `proposed` is not failing; it is
+not recording answers, and the report should say so.
+
+The idea comes from the recommendation ledger in
+[mattabate/life-distributable](https://github.com/mattabate/life-distributable)
+(`hub/internal/recs`), which keeps a separate decision and outcome per
+recommendation so that future advice is based on a track record.
+
 ## Scratch directory
 
 `~/.hermes/profiles/<role>/cache/scratch/` is `TMPDIR` for the agent's

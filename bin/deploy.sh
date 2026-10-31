@@ -17,6 +17,7 @@ fi
 
 install -d -m 755 "$H/scripts"
 install -m 755 "$REPO/bin/state.py" "$H/scripts/state.py"
+install -m 755 "$REPO/bin/scorecard.py" "$H/scripts/scorecard.py"
 
 common="$(sed -n '/^```text$/,/^```$/p' "$REPO/templates/common-rules.md" | sed '1d;$d')"
 
